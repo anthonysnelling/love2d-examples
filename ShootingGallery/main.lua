@@ -56,12 +56,27 @@ function love.load()
                   target.x = math.random(target.radius,love.graphics.getWidth() - target.radius)
                   target.y = math.random(target.radius,love.graphics.getHeight() - target.radius)
               end
+              if mouseToTarget > target.radius and score > 0 then
+                 score = score - 1 
+              end
               elseif button == 1 and gameState == 1 then
                 gameState = 2
                 timer = 10
                 score = 0
           end
-  end
+         if button == 2 and gameState == 2 then
+              local mouseToTarget = distanceBetween(x, y, target.x, target.y)
+              if mouseToTarget < target.radius then
+                  score = score + 2;
+                  timer = timer - 1;
+                  target.x = math.random(target.radius,love.graphics.getWidth() - target.radius)
+                  target.y = math.random(target.radius,love.graphics.getHeight() - target.radius)
+              end
+              if mouseToTarget > target.radius and score > 0 then
+                 score = score - 2 
+              end
+          end
+        end
   
   function distanceBetween(x1, y1, x2, y2)
       return math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
