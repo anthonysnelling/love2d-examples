@@ -19,6 +19,8 @@ function love.load()
 end
 
 function love.update(dt)
+
+    -- movement of our player, multiplied by dt (Delta time) to help keep consistent movement across framerates
     if  love.keyboard.isDown('d') then
         player.x = player.x + player.speed * dt
     end
@@ -32,9 +34,17 @@ function love.update(dt)
         player.y = player.y + player.speed * dt
     end
     
+    -- directs zombies towards the player uses cos sin to on the angle to find the direction needed to move in
     for index, zombos in ipairs(zombies) do
         zombos.x = zombos.x + (math.cos(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
         zombos.y = zombos.y + (math.sin(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
+
+        -- makes it so that when zombies hit the player they dissapear
+        if distanceBetween(zombos.x, zombos.y, player.x, player.y) < 30 then
+            for index, zombos in ipairs(zombies) do
+               zombies[index] = nil 
+            end
+        end
     end
 
 end
@@ -42,6 +52,7 @@ end
 function love.draw()
    love.graphics.draw(sprites.background, 0, 0) 
 
+    -- adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
    love.graphics.draw(sprites.player, player.x, player.y, PlayerMouseAngle(), nil, nil, sprites.player:getWidth()/2, sprites.player:getHeight()/2)
 
    for index, zombo in ipairs(zombies) do
@@ -56,6 +67,7 @@ function love.keypressed(key)
 end
 
 function PlayerMouseAngle()
+    -- atan2 used to find the angle from player to mouse
       return math.atan2(player.y - love.mouse.getY(), player.x - love.mouse.getX()) + math.pi
 end
 
@@ -68,5 +80,12 @@ function spawnZombie()
 end
 
 function ZombiePlayerAngle(enemy)
+       -- uses atan2 (arc tangent) to find the angle between a player and zombie
       return math.atan2(player.y - enemy.y, player.x - enemy.x ) 
-    end
+end
+
+
+function distanceBetween(x1, y1, x2, y2)
+    -- using the distance formula
+   return math.sqrt((x2 - x1)^2 + (y2 - y1)^2) 
+end
