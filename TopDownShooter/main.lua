@@ -16,6 +16,7 @@ function love.load()
 
 
     zombies = {}
+    bullets = {}
 end
 
 function love.update(dt)
@@ -34,7 +35,7 @@ function love.update(dt)
         player.y = player.y + player.speed * dt
     end
     
-    -- directs zombies towards the player uses cos sin to on the angle to find the direction needed to move in
+    -- directs zombies towards the player, uses cos/sin on the angle to find the direction needed to move in
     for index, zombos in ipairs(zombies) do
         zombos.x = zombos.x + (math.cos(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
         zombos.y = zombos.y + (math.sin(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
@@ -47,6 +48,18 @@ function love.update(dt)
         end
     end
 
+    for index, bullet in ipairs(bullets) do
+       bullet.x = bullet.x + (math.cos(bullet.direction) * bullet.speed * dt)
+       bullet.y = bullet.y + (math.sin(bullet.direction) * bullet.speed * dt)
+    end
+
+    -- #TableName returns the number of elements in a table
+    for i = #bullets, 1, -1 do
+        local b = bullets[i]
+        if b.x < 0 or b.y < 0 or b.x > love.graphics.getWidth() or b.y > love.graphics.getHeight() then
+           table.remove(bullets, i) 
+        end
+    end
 end
 
 function love.draw()
@@ -58,11 +71,21 @@ function love.draw()
    for index, zombo in ipairs(zombies) do
       love.graphics.draw(sprites.zombie, zombo.x, zombo.y, ZombiePlayerAngle(zombo), nil, nil, sprites.zombie:getWidth()/2, sprites.zombie:getHeight()/2) 
    end
+
+   for index, bullet in ipairs(bullets) do
+    love.graphics.draw(sprites.bullet, bullet.x, bullet.y, nil, 0.5, nil, sprites.bullet:getWidth(), sprites.bullet:getWidth())
+   end
 end
 
 function love.keypressed(key)
    if key == "space" then
       spawnZombie() 
+   end 
+end
+
+function love.mousepressed(x,y,button)
+   if button == 1 then
+      spawnBullet() 
    end 
 end
 
@@ -84,6 +107,14 @@ function ZombiePlayerAngle(enemy)
       return math.atan2(player.y - enemy.y, player.x - enemy.x ) 
 end
 
+function spawnBullet()
+   local bullet = {}
+   bullet.x = player.x
+   bullet.y = player.y
+   bullet.speed = 500
+   bullet.direction = PlayerMouseAngle() 
+   table.insert(bullets, bullet)
+end
 
 function distanceBetween(x1, y1, x2, y2)
     -- using the distance formula
