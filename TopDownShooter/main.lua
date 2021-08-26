@@ -60,9 +60,37 @@ function love.update(dt)
            table.remove(bullets, i) 
         end
     end
+
+   --  test the distance between a zombie and bullet and kills the bullet and zombie
+    for i, z in ipairs(zombies) do
+        for j, b in ipairs(bullets) do
+          if distanceBetween(z.x,z.y,b.x,b.y) < 20 then
+            z.dead = true 
+            b.dead = true
+          end 
+        end  
+    end
+
+   --  removes zombies if they are dead
+    for i = #zombies, 1, -1 do
+         local z = zombies[i] 
+         if z.dead == true then
+            table.remove(zombies,i)
+         end
+    end
+
+   --  removes bullets if they are dead
+    for i = #bullets, 1, -1 do
+         local b = bullets[i] 
+         if b.dead == true then
+            table.remove(bullets,i)
+         end
+    end
+
 end
 
 function love.draw()
+   -- draws background
    love.graphics.draw(sprites.background, 0, 0) 
 
     -- adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
@@ -99,7 +127,9 @@ function spawnZombie()
    zombie.x = math.random(0, love.graphics.getWidth())
    zombie.y = math.random(0, love.graphics.getHeight()) 
    zombie.speed = 140
+   zombie.dead = false
    table.insert(zombies, zombie)
+
 end
 
 function ZombiePlayerAngle(enemy)
@@ -113,6 +143,7 @@ function spawnBullet()
    bullet.y = player.y
    bullet.speed = 500
    bullet.direction = PlayerMouseAngle() 
+   bullet.dead = false
    table.insert(bullets, bullet)
 end
 
