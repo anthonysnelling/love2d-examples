@@ -17,6 +17,10 @@ function love.load()
 
     zombies = {}
     bullets = {}
+
+    gameState = 2
+    maxTime = 2
+    timer = maxTime
 end
 
 function love.update(dt)
@@ -40,10 +44,11 @@ function love.update(dt)
         zombos.x = zombos.x + (math.cos(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
         zombos.y = zombos.y + (math.sin(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
 
-        -- makes it so that when zombies hit the player they dissapear
+        -- makes it so that when zombies hit the player they dissapear also resets game
         if distanceBetween(zombos.x, zombos.y, player.x, player.y) < 30 then
             for index, zombos in ipairs(zombies) do
                zombies[index] = nil 
+               gameState = 1
             end
         end
     end
@@ -87,6 +92,16 @@ function love.update(dt)
          end
     end
 
+
+    if gameState == 2 then
+       timer = timer - dt
+       if timer <= 0 then
+          spawnZombie()
+          timer = maxTime
+          maxTime = 0.95 * maxTime
+       end
+    end
+
 end
 
 function love.draw()
@@ -124,10 +139,41 @@ end
 
 function spawnZombie()
     local zombie = {}
-   zombie.x = math.random(0, love.graphics.getWidth())
-   zombie.y = math.random(0, love.graphics.getHeight()) 
+
+
+   zombie.x = 0
+   zombie.y = 0 
    zombie.speed = 140
    zombie.dead = false
+    
+   -- determines the side of the screen a zombie should spawn
+   local side = math.random(1,4)
+  
+   -- for left side spawns
+   if side == 1 then
+      zombie.x = -30;
+      zombie.y = math.random(0, love.graphics.getHeight())
+   end
+
+   -- for right side spawns
+   if side == 2 then
+      zombie.x = love.graphics.getWidth() + 30;
+      zombie.y = math.random(0, love.graphics.getHeight())
+   end
+
+   -- for Top side spawns
+   if side == 3 then
+      zombie.x = math.random(0, love.graphics.getWidth());
+      zombie.y = -30
+   end
+
+   -- for Bottom side spawns
+   if side == 4 then
+      zombie.x = math.random(0, love.graphics.getWidth());
+      zombie.y = love.graphics.getHeight() + 30
+   end
+
+
    table.insert(zombies, zombie)
 
 end
