@@ -1,4 +1,7 @@
 function love.load()
+   -- make the random number generation based on time to keep things more random
+   math.randomseed(os.time())
+
     sprites = {}
     --loading sprites
     sprites.background = love.graphics.newImage("sprites/background.png")
@@ -14,28 +17,30 @@ function love.load()
     --properties
     player.speed = 180
 
+    myFont = love.graphics.newFont(30)
 
     zombies = {}
     bullets = {}
 
-    gameState = 2
+    gameState = 1
     maxTime = 2
     timer = maxTime
+    score = 0
 end
 
 function love.update(dt)
 
     -- movement of our player, multiplied by dt (Delta time) to help keep consistent movement across framerates
-    if  love.keyboard.isDown('d') then
+    if  love.keyboard.isDown('d') and player.x < love.graphics.getWidth() then
         player.x = player.x + player.speed * dt
     end
-    if  love.keyboard.isDown('a') then
+    if  love.keyboard.isDown('a') and player.x > 0 then
         player.x = player.x - player.speed * dt
     end
-    if  love.keyboard.isDown('w') then
+    if  love.keyboard.isDown('w') and player.y > 0  then
         player.y = player.y - player.speed * dt
     end
-    if  love.keyboard.isDown('s') then
+    if  love.keyboard.isDown('s')and player.y < love.graphics.getHeight() then
         player.y = player.y + player.speed * dt
     end
     
@@ -49,6 +54,8 @@ function love.update(dt)
             for index, zombos in ipairs(zombies) do
                zombies[index] = nil 
                gameState = 1
+               player.x = love.graphics.getWidth() /2
+               player.y = love.graphics.getHeight() /2
             end
         end
     end
@@ -72,6 +79,7 @@ function love.update(dt)
           if distanceBetween(z.x,z.y,b.x,b.y) < 20 then
             z.dead = true 
             b.dead = true
+            score = score + 1
           end 
         end  
     end
@@ -108,6 +116,12 @@ function love.draw()
    -- draws background
    love.graphics.draw(sprites.background, 0, 0) 
 
+   if gameState == 1 then
+      love.graphics.setFont(myFont)
+      love.graphics.printf("Click Anywhere to begin!", 0, 50, love.graphics.getWidth(),'center') 
+   end
+
+   love.graphics.printf("Score: " .. score, 0, love.graphics.getHeight() - 100, love.graphics.getWidth(), 'center')
     -- adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
    love.graphics.draw(sprites.player, player.x, player.y, PlayerMouseAngle(), nil, nil, sprites.player:getWidth()/2, sprites.player:getHeight()/2)
 
@@ -127,9 +141,14 @@ function love.keypressed(key)
 end
 
 function love.mousepressed(x,y,button)
-   if button == 1 then
+   if button == 1 and gameState ==2 then
       spawnBullet() 
-   end 
+   elseif button == 1 and gameState == 1 then
+      gameState = 2
+      maxTime = 2
+      timer = maxTime
+      score = 0
+   end
 end
 
 function PlayerMouseAngle()
@@ -139,7 +158,6 @@ end
 
 function spawnZombie()
     local zombie = {}
-
 
    zombie.x = 0
    zombie.y = 0 
