@@ -16,6 +16,7 @@ function love.load()
     player.y = love.graphics.getHeight()/2
     --properties
     player.speed = 180
+    player.injured = false
 
     myFont = love.graphics.newFont(30)
 
@@ -49,15 +50,17 @@ function love.update(dt)
         zombos.x = zombos.x + (math.cos(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
         zombos.y = zombos.y + (math.sin(ZombiePlayerAngle(zombos)) * zombos.speed * dt)
 
-        -- makes it so that when zombies hit the player they dissapear also resets game
-        if distanceBetween(zombos.x, zombos.y, player.x, player.y) < 30 then
-            for index, zombos in ipairs(zombies) do
+        
+        -- makes it so that when zombies hit the player while injured they all disappear, and the game resets
+        if distanceBetween(zombos.x, zombos.y, player.x, player.y) < 30  and player.injured == true then
+            for index, z in ipairs(zombies) do
                zombies[index] = nil 
                gameState = 1
-               player.x = love.graphics.getWidth() /2
+               player.x = love.graphics.getWidth() / 2
                player.y = love.graphics.getHeight() /2
             end
         end
+
     end
 
     for index, bullet in ipairs(bullets) do
@@ -84,6 +87,16 @@ function love.update(dt)
         end  
     end
 
+
+   --  if the player gets hit for the first time, removes zombie and enter injured state where player moves faster. 
+    for i, z in ipairs(zombies) do
+        if distanceBetween(z.x, z.y, player.x, player.y) < 30  and player.injured == false then
+            z.dead = true 
+            player.speed = 360
+            player.injured = true
+        end  
+    end
+                
    --  removes zombies if they are dead
     for i = #zombies, 1, -1 do
          local z = zombies[i] 
@@ -113,18 +126,29 @@ function love.update(dt)
 end
 
 function love.draw()
+   love.graphics.setColor(1,1,1,1)
    -- draws background
    love.graphics.draw(sprites.background, 0, 0) 
 
    if gameState == 1 then
       love.graphics.setFont(myFont)
-      love.graphics.printf("Click Anywhere to begin!", 0, 50, love.graphics.getWidth(),'center') 
+      love.graphics.printf("Right Click Anywhere to begin!", 0, 50, love.graphics.getWidth(),'center') 
    end
 
    love.graphics.printf("Score: " .. score, 0, love.graphics.getHeight() - 100, love.graphics.getWidth(), 'center')
-    -- adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
-   love.graphics.draw(sprites.player, player.x, player.y, PlayerMouseAngle(), nil, nil, sprites.player:getWidth()/2, sprites.player:getHeight()/2)
 
+   if player.injured == false then
+       -- draws player non-injured, adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
+      love.graphics.draw(sprites.player, player.x, player.y, PlayerMouseAngle(), nil, nil, sprites.player:getWidth()/2, sprites.player:getHeight()/2)
+   end
+   
+   if player.injured == true then
+       -- draws player injured, adjusted the pivot point with getWidth and getHeight used nil to ignore the scaling
+      love.graphics.setColor(1,0,0,1)
+      love.graphics.draw(sprites.player, player.x, player.y, PlayerMouseAngle(), nil, nil, sprites.player:getWidth()/2, sprites.player:getHeight()/2)
+   end
+
+   love.graphics.setColor(1,1,1,1)
    for index, zombo in ipairs(zombies) do
       love.graphics.draw(sprites.zombie, zombo.x, zombo.y, ZombiePlayerAngle(zombo), nil, nil, sprites.zombie:getWidth()/2, sprites.zombie:getHeight()/2) 
    end
@@ -143,11 +167,13 @@ end
 function love.mousepressed(x,y,button)
    if button == 1 and gameState ==2 then
       spawnBullet() 
-   elseif button == 1 and gameState == 1 then
+   elseif button == 2 and gameState == 1 then
       gameState = 2
       maxTime = 2
       timer = maxTime
       score = 0
+      player.injured = false
+      player.speed = 180
    end
 end
 
