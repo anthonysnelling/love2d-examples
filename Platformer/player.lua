@@ -5,6 +5,7 @@ player.animation = animations.idle
 player.isMoving = false
 player.direction = 1
 player.grounded = true
+player.dead = false
 
 function playerUpdate(dt)
        -- check if the player is on the ground
@@ -31,6 +32,7 @@ function playerUpdate(dt)
     end
 
     if player:enter('Danger') then
+      player.dead = true
        player:destroy()
     end
    end
@@ -48,7 +50,9 @@ if player.grounded then
 end
  
 function drawPlayer()
-    local px,py = player:getPosition()
-   -- multiply scale by player.direction to scale
-   player.animation:draw(sprites.playerSheet,px, py, nil, 0.25 * player.direction, 0.25, 130, 300)
+   if player.dead == false then
+       local px,py = player:getPosition()
+      -- multiply scale by player.direction to scale
+      player.animation:draw(sprites.playerSheet,px, py, nil, 0.25 * player.direction, 0.25, 130, 300)
+   end
 end
