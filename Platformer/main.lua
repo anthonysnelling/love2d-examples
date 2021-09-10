@@ -3,7 +3,11 @@ function love.load()
 
   anim8 = require('libraries/anim8/anim8')
   sti = require('libraries/Simple-Tiled-Implementation/sti')
+  cameraFile = require('libraries/hump/camera')
   
+   --creates a camera object
+  cam = cameraFile()
+
    sprites = {}
    sprites.playerSheet = love.graphics.newImage('sprites/playerSheet.png')
 
@@ -13,7 +17,6 @@ function love.load()
    animations.idle = anim8.newAnimation(grid('1-15',1), 0.05)
    animations.jump = anim8.newAnimation(grid('1-7',2), 0.05)
    animations.run = anim8.newAnimation(grid('1-15',3), 0.05)
-
 
   wf = require 'libraries/windfield/windfield'  
 
@@ -26,7 +29,7 @@ function love.load()
 
   require('player')
 
-  dangerZone = world:newRectangleCollider(0, love.graphics.getHeight() - 50, love.graphics.getWidth(), 50, {collision_class = 'Danger'}) 
+  dangerZone = world:newRectangleCollider(-500, love.graphics.getHeight() - 50, love.graphics.getWidth() *10, 50, {collision_class = 'Danger'}) 
   dangerZone:setType('static')
 
   platforms = {}
@@ -38,12 +41,23 @@ function love.update(dt)
    world:update(dt) 
    gameMap:update(dt)
    playerUpdate(dt)
+
+   -- camera setup, get player postion and makes camera look at that
+   if player.dead == false then
+      local px, py = player:getPosition()
+      cam:lookAt(px, love.graphics.getHeight()/2)
+   end
 end
 
+
 function love.draw()
-   gameMap:drawLayer(gameMap.layers["Tile Layer 1"])
-   world:draw() 
-   drawPlayer()
+  
+   -- everything between these functions moves according to the camera, outside is fixed like a hud
+   cam:attach()
+      gameMap:drawLayer(gameMap.layers["Tile Layer 1"])
+      world:draw() 
+      drawPlayer()
+   cam:detach()
 end
 
 function love.keypressed(key)
