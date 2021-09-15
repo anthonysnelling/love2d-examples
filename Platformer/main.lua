@@ -10,14 +10,18 @@ function love.load()
 
    sprites = {}
    sprites.playerSheet = love.graphics.newImage('sprites/playerSheet.png')
+   sprites.enemySheet = love.graphics.newImage('sprites/enemySheet.png')
 
    local grid = anim8.newGrid(614, 564, sprites.playerSheet:getWidth(), sprites.playerSheet:getHeight())
+   local enemyGrid = anim8.newGrid(100, 79, sprites.enemySheet:getWidth(), sprites.enemySheet:getHeight())
 
    animations = {}
+   -- player animations
    animations.idle = anim8.newAnimation(grid('1-15',1), 0.05)
    animations.jump = anim8.newAnimation(grid('1-7',2), 0.05)
    animations.run = anim8.newAnimation(grid('1-15',3), 0.05)
-
+   -- enemy animations
+   animations.enemy = anim8.newAnimation(enemyGrid('1-2',1), 0.03)
   wf = require 'libraries/windfield/windfield'  
 
   world = wf.newWorld(0,980, false)
@@ -28,6 +32,7 @@ function love.load()
   world:addCollisionClass('Danger')
 
   require('player')
+  require('enemy')
 
   dangerZone = world:newRectangleCollider(-500, love.graphics.getHeight() - 50, love.graphics.getWidth() *10, 50, {collision_class = 'Danger'}) 
   dangerZone:setType('static')
@@ -35,12 +40,14 @@ function love.load()
   platforms = {}
 
   loadMap()
+
 end
 
 function love.update(dt)
    world:update(dt) 
    gameMap:update(dt)
    playerUpdate(dt)
+   updateEnemies(dt)
 
    -- camera setup, get player postion and makes camera look at that
    if player.dead == false then
@@ -51,12 +58,12 @@ end
 
 
 function love.draw()
-  
    -- everything between these functions moves according to the camera, outside is fixed like a hud
    cam:attach()
       gameMap:drawLayer(gameMap.layers["Tile Layer 1"])
       world:draw() 
       drawPlayer()
+      drawEnemies()
    cam:detach()
 end
 
@@ -90,4 +97,8 @@ function loadMap()
    for i, obj in pairs(gameMap.layers["Platforms"].objects) do
      spawnPlatforms(obj.x, obj.y, obj.width, obj.height) 
    end
+   for i, obj in pairs(gameMap.layers["Enemies"].objects) do
+     spawnEnemy(obj.x, obj.y, obj.width, obj.height) 
+   end
+
 end
