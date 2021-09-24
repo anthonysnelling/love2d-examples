@@ -8,9 +8,17 @@ function love.load()
    --creates a camera object
   cam = cameraFile()
 
+  sounds = {}
+  sounds.jump = love.audio.newSource("audio/jump.wav", 'static')
+  sounds.music = love.audio.newSource("audio/music.mp3", 'stream')
+  sounds.music:setLooping(true)
+  sounds.music:setVolume(0.5)
+  sounds.music:play()
+
    sprites = {}
    sprites.playerSheet = love.graphics.newImage('sprites/playerSheet.png')
    sprites.enemySheet = love.graphics.newImage('sprites/enemySheet.png')
+   sprites.background = love.graphics.newImage('sprites/background.png')
 
    local grid = anim8.newGrid(614, 564, sprites.playerSheet:getWidth(), sprites.playerSheet:getHeight())
    local enemyGrid = anim8.newGrid(100, 79, sprites.enemySheet:getWidth(), sprites.enemySheet:getHeight())
@@ -36,7 +44,7 @@ function love.load()
   require('libraries/show')
   
 
-  dangerZone = world:newRectangleCollider(-500, love.graphics.getHeight() - 50, love.graphics.getWidth() *10, 50, {collision_class = 'Danger'}) 
+  dangerZone = world:newRectangleCollider(-500, love.graphics.getHeight() + 10, love.graphics.getWidth() *10, 50, {collision_class = 'Danger'}) 
   dangerZone:setType('static')
 
   platforms = {}
@@ -81,9 +89,11 @@ end
 
 function love.draw()
    -- everything between these functions moves according to the camera, outside is fixed like a hud
+   love.graphics.draw(sprites.background,0,0)
    cam:attach()
       gameMap:drawLayer(gameMap.layers["Tile Layer 1"])
-      world:draw() 
+      -- this is for debugging collisions
+      -- world:draw() 
       drawPlayer()
       drawEnemies()
    cam:detach()
@@ -93,6 +103,7 @@ function love.keypressed(key)
     if key == 'space' then
         if player.grounded == true then
          player:applyLinearImpulse(0, -5000)
+         sounds.jump:play()
         end
     end
     if key == 'r' then
@@ -143,8 +154,12 @@ function loadMap(mapName)
    saveData.currentLevel = mapName
    love.filesystem.write('data.lua',table.show(saveData, 'saveData'))
    destroyAll()
-   player:setPosition(300, 100)
    gameMap = sti("Maps/" .. mapName .. ".lua")
+   for i, obj in pairs(gameMap.layers["Start"].objects) do
+      playerStartX = obj.x
+      playerStartY = obj.y
+   end
+   player:setPosition(playerStartX, playerStartY)
    for i, obj in pairs(gameMap.layers["Platforms"].objects) do
      spawnPlatforms(obj.x, obj.y, obj.width, obj.height) 
    end
